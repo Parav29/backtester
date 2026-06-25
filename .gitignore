@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Generated screener outputs (re-created by running the screen)
+data/fundamentals_cache.csv
+data/b4_shortlist.csv
+data/b4_scored.csv
