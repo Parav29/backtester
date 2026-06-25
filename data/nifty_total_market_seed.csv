@@ -1,0 +1,72 @@
+ticker,name,thesis_sector
+# Curated seed of Nifty Total Market constituents, grouped by the B4 thesis sectors
+# from the Singhania context (consumption, financials, industrials/capex, defence,
+# digital/IT, healthcare). yfinance uses the ".NS" (NSE) suffix.
+# This is a SEED only -- screener/universe.py will replace it with the full
+# official Nifty Total Market list when archives.nseindia.com is reachable.
+#
+# --- Consumption (auto / durables / retail / FMCG) ---
+MARUTI.NS,Maruti Suzuki India,Consumption
+M&M.NS,Mahindra & Mahindra,Consumption
+TATAMOTORS.NS,Tata Motors,Consumption
+EICHERMOT.NS,Eicher Motors,Consumption
+BAJAJ-AUTO.NS,Bajaj Auto,Consumption
+TVSMOTOR.NS,TVS Motor,Consumption
+TITAN.NS,Titan Company,Consumption
+DMART.NS,Avenue Supermarts,Consumption
+TRENT.NS,Trent,Consumption
+HAVELLS.NS,Havells India,Consumption
+VOLTAS.NS,Voltas,Consumption
+DIXON.NS,Dixon Technologies,Consumption
+HINDUNILVR.NS,Hindustan Unilever,Consumption
+VBL.NS,Varun Beverages,Consumption
+ZOMATO.NS,Eternal (Zomato),Consumption
+# --- Financials (private banks / NBFCs / housing finance) ---
+HDFCBANK.NS,HDFC Bank,Financials
+ICICIBANK.NS,ICICI Bank,Financials
+KOTAKBANK.NS,Kotak Mahindra Bank,Financials
+AXISBANK.NS,Axis Bank,Financials
+SBIN.NS,State Bank of India,Financials
+BAJFINANCE.NS,Bajaj Finance,Financials
+BAJAJFINSV.NS,Bajaj Finserv,Financials
+CHOLAFIN.NS,Cholamandalam Investment,Financials
+SHRIRAMFIN.NS,Shriram Finance,Financials
+LICHSGFIN.NS,LIC Housing Finance,Financials
+PNBHOUSING.NS,PNB Housing Finance,Financials
+SBICARD.NS,SBI Cards,Financials
+# --- Industrials / Capital Goods (capex cycle + 2033 defence supply chain) ---
+LT.NS,Larsen & Toubro,Industrials
+SIEMENS.NS,Siemens India,Industrials
+ABB.NS,ABB India,Industrials
+CUMMINSIND.NS,Cummins India,Industrials
+THERMAX.NS,Thermax,Industrials
+BHEL.NS,Bharat Heavy Electricals,Industrials
+KEI.NS,KEI Industries,Industrials
+POLYCAB.NS,Polycab India,Industrials
+APARINDS.NS,Apar Industries,Industrials
+KAYNES.NS,Kaynes Technology,Industrials
+# --- Defence / Aerospace (core 2033 event play) ---
+HAL.NS,Hindustan Aeronautics,Defence
+BEL.NS,Bharat Electronics,Defence
+BDL.NS,Bharat Dynamics,Defence
+MAZDOCK.NS,Mazagon Dock Shipbuilders,Defence
+SOLARINDS.NS,Solar Industries,Defence
+PARAS.NS,Paras Defence and Space,Defence
+MTARTECH.NS,MTAR Technologies,Defence
+DATAPATTNS.NS,Data Patterns India,Defence
+# --- Digital / Technology (IT services + domestic tech platforms) ---
+TCS.NS,Tata Consultancy Services,Digital
+INFY.NS,Infosys,Digital
+HCLTECH.NS,HCL Technologies,Digital
+PERSISTENT.NS,Persistent Systems,Digital
+COFORGE.NS,Coforge,Digital
+LTIM.NS,LTIMindtree,Digital
+KPITTECH.NS,KPIT Technologies,Digital
+# --- Healthcare (defensive, demographic runway) ---
+SUNPHARMA.NS,Sun Pharmaceutical,Healthcare
+CIPLA.NS,Cipla,Healthcare
+DRREDDY.NS,Dr Reddys Laboratories,Healthcare
+DIVISLAB.NS,Divis Laboratories,Healthcare
+APOLLOHOSP.NS,Apollo Hospitals,Healthcare
+MAXHEALTH.NS,Max Healthcare,Healthcare
+LAURUSLABS.NS,Laurus Labs,Healthcare
