@@ -1,0 +1,23 @@
+ticker,name,thesis_sector,yahoo_sector,price,market_cap_cr,cap_bucket,trailing_pe,forward_pe,peg,revenue_growth,earnings_growth,profit_margin,roe,debt_to_equity
+HDFCBANK.NS,HDFC Bank,Financials,Financial Services,1700,1280000,,18.5,16.0,1.2,0.16,0.18,0.28,0.17,0.0
+ICICIBANK.NS,ICICI Bank,Financials,Financial Services,1150,810000,,17.0,15.2,1.1,0.18,0.22,0.30,0.18,0.0
+BAJFINANCE.NS,Bajaj Finance,Financials,Financial Services,7200,440000,,28.0,23.0,1.3,0.25,0.27,0.32,0.22,1.8
+CHOLAFIN.NS,Cholamandalam Investment,Financials,Financial Services,1450,120000,,28.5,22.0,1.4,0.30,0.31,0.21,0.20,1.9
+MARUTI.NS,Maruti Suzuki India,Consumption,Consumer Cyclical,12500,395000,,26.0,22.5,1.6,0.12,0.15,0.10,0.16,0.05
+TITAN.NS,Titan Company,Consumption,Consumer Cyclical,3600,320000,,82.0,65.0,2.5,0.20,0.18,0.08,0.32,0.6
+DIXON.NS,Dixon Technologies,Consumption,Consumer Cyclical,15000,90000,,110.0,75.0,2.0,0.42,0.55,0.04,0.28,0.3
+TRENT.NS,Trent,Consumption,Consumer Cyclical,6200,220000,,140.0,95.0,3.0,0.38,0.45,0.09,0.30,0.7
+LT.NS,Larsen & Toubro,Industrials,Industrials,3800,520000,,35.0,30.0,1.8,0.17,0.19,0.07,0.16,1.1
+CUMMINSIND.NS,Cummins India,Industrials,Industrials,3300,91000,,42.0,36.0,2.2,0.22,0.28,0.16,0.30,0.1
+POLYCAB.NS,Polycab India,Industrials,Industrials,6900,103000,,48.0,40.0,2.3,0.24,0.26,0.10,0.22,0.1
+HAL.NS,Hindustan Aeronautics,Defence,Industrials,4900,330000,,38.0,32.0,1.9,0.20,0.25,0.26,0.27,0.0
+BEL.NS,Bharat Electronics,Defence,Industrials,320,235000,,52.0,44.0,2.4,0.18,0.24,0.22,0.25,0.0
+MAZDOCK.NS,Mazagon Dock Shipbuilders,Defence,Industrials,3400,68000,,40.0,35.0,1.7,0.28,0.35,0.15,0.40,0.0
+DATAPATTNS.NS,Data Patterns India,Defence,Industrials,2600,15000,,62.0,48.0,2.1,0.30,0.33,0.24,0.18,0.0
+TCS.NS,Tata Consultancy Services,Digital,Technology,3900,1410000,,28.0,26.0,2.8,0.07,0.09,0.19,0.50,0.1
+PERSISTENT.NS,Persistent Systems,Digital,Technology,5800,89000,,58.0,48.0,2.2,0.20,0.24,0.12,0.24,0.0
+COFORGE.NS,Coforge,Digital,Technology,8200,55000,,55.0,44.0,2.0,0.28,0.30,0.10,0.22,0.4
+SUNPHARMA.NS,Sun Pharmaceutical,Healthcare,Healthcare,1800,430000,,38.0,33.0,2.1,0.11,0.14,0.22,0.17,0.1
+MAXHEALTH.NS,Max Healthcare,Healthcare,Healthcare,1100,107000,,72.0,58.0,2.6,0.26,0.30,0.19,0.16,0.2
+LAURUSLABS.NS,Laurus Labs,Healthcare,Healthcare,640,34000,,55.0,38.0,1.8,0.15,0.40,0.08,0.13,0.7
+RELIANCE.NS,Reliance Industries,Energy,Energy,1450,1960000,,24.0,21.0,1.5,0.09,0.11,0.08,0.09,0.4
