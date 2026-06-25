@@ -1,31 +1,73 @@
-# Singhania Portfolio — B4 Equity Screener
+# Singhania Portfolio — Screener + Backtester
 
-Stock screener for **B4 (Aarya's Growth Pool)** of the Singhania Family Portfolio
-Management Competition. It pulls fundamentals for the Nifty Total Market universe
-and filters/ranks candidates by **sector**, **market cap**, and **growth metrics**,
-producing a shortlist where each name carries the data points needed to justify it.
+Two tools for the Singhania Family Portfolio Management Competition:
+
+1. **`screener/`** — picks **B4 (Aarya's Growth Pool)** candidates from the Nifty
+   Total Market universe by sector, market cap, and growth metrics.
+2. **`backtester/`** — projects all four baskets (B1–B4) to 2036 with event-driven
+   rebalancing, computes the bonus risk metrics, applies tax, runs Monte Carlo,
+   and exports an Excel workbook for the judges.
+
+## Backtester quick start
+
+```bash
+# Full run (B4 equity metrics need live yfinance for the picks)
+python -m backtester.run --picks data/b4_shortlist.csv
+
+# Projection + Monte Carlo + tax only (no network)
+python -m backtester.run --no-metrics
+```
+
+Outputs `data/singhania_backtest.xlsx` with sheets: Allocation, Projection,
+GoalReconciliation, B4Metrics, MonteCarlo, Assumptions.
+
+### Backtester layout
+
+```
+backtester/
+  config.py       # ALL assumptions: baskets, returns, events, tax, withdrawals
+  projection.py   # deterministic year-by-year projection to 2036 + goal recon
+  metrics.py      # Beta / Sharpe / Treynor / Jensen's Alpha (market proxy ^NSEI)
+  tax.py          # LTCG/STCG equity, slab debt tax, SGB exemption
+  montecarlo.py   # N-path stochastic sim -> goal-achievement probability
+  excel_export.py # structured .xlsx workbook for judges
+  run.py          # orchestrator / CLI
+```
+
+`config.py` is the single source of truth — edit basket allocations, returns,
+the 2029/2033 events, and tax rates there; nothing downstream hard-codes them.
+To use your **own** final B4 picks, point `--picks` at a CSV with a `ticker`
+column (optional `weight` or `allocation_pct`; equal-weighted otherwise).
+
+---
 
 This is step 1 of the broader backtester (data pipeline → screen → metrics →
 projection → events → tax → Monte Carlo → Excel export).
 
-## Layout
+## Screener Layout
+
+```
 screener/
-universe.py # Nifty Total Market constituent list (NSE live, seed fallback)
-fundamentals.py # yfinance fetch -> normalised fundamentals (+ cache)
-filters.py # PURE functions: cap buckets, sector/cap/growth gates, scoring
-screen.py # CLI orchestrator -> ranked CSV + console summary
+  universe.py      # Nifty Total Market constituent list (NSE live, seed fallback)
+  fundamentals.py  # yfinance fetch -> normalised fundamentals (+ cache)
+  filters.py       # PURE functions: cap buckets, sector/cap/growth gates, scoring
+  screen.py        # CLI orchestrator -> ranked CSV + console summary
 data/
-nifty_total_market_seed.csv # curated thesis-sector seed (used if NSE blocked)
-sample_fundamentals_SYNTHETIC.csv # ILLUSTRATIVE data to demo the offline path
+  nifty_total_market_seed.csv        # curated thesis-sector seed (used if NSE blocked)
+  sample_fundamentals_SYNTHETIC.csv  # ILLUSTRATIVE data to demo the offline path
 tests/
-test_filters.py # unit tests for the screening logic (no network)
+  test_filters.py  # unit tests for the screening logic (no network)
+```
 
 ## Install
+
 ```bash
 pip install -r requirements.txt
 ```
 
-Run
+## Run
+
+```bash
 # Live: fetch the official NSE list + fundamentals from Yahoo Finance, then screen
 python -m screener.screen
 
@@ -37,36 +79,46 @@ python -m screener.screen --input data/fundamentals_cache.csv
 
 # Tune the shortlist
 python -m screener.screen --target-count 15 --max-per-sector 3
-Outputs: data/b4_shortlist.csv (ranked picks + justification metrics) and
-data/b4_scored.csv (every name that cleared the gates).
+```
 
-How the screen works
-Universe — official Nifty Total Market list from NSE; falls back to a
-curated seed of thesis-sector names when NSE is unreachable.
-Sector gate — keep only the six thesis sectors (Consumption, Financials,
-Industrials, Defence, Digital, Healthcare). Yahoo GICS sectors are mapped to
-these; the seed list tags Defence explicitly (Yahoo files it under Industrials).
-Market-cap gate — drop micro-caps below min_market_cap_cr; tag each name
-large / mid / small by INR-crore cutoffs so the final mix spans ~11% (large)
-and ~13% (mid/small) return buckets per the competition baseline.
-Growth gate — require at least N of {revenue growth, earnings growth, ROE}
-to clear their thresholds, plus loose leverage/valuation guardrails.
-Score — weighted sum of z-scored growth + quality metrics.
-Select — top names by score under a per-sector diversification cap.
-All thresholds live in ScreenConfig (screener/filters.py) so they're auditable
+Outputs: `data/b4_shortlist.csv` (ranked picks + justification metrics) and
+`data/b4_scored.csv` (every name that cleared the gates).
+
+## How the screen works
+
+1. **Universe** — official Nifty Total Market list from NSE; falls back to a
+   curated seed of thesis-sector names when NSE is unreachable.
+2. **Sector gate** — keep only the six thesis sectors (Consumption, Financials,
+   Industrials, Defence, Digital, Healthcare). Yahoo GICS sectors are mapped to
+   these; the seed list tags Defence explicitly (Yahoo files it under Industrials).
+3. **Market-cap gate** — drop micro-caps below `min_market_cap_cr`; tag each name
+   large / mid / small by INR-crore cutoffs so the final mix spans `~11%` (large)
+   and `~13%` (mid/small) return buckets per the competition baseline.
+4. **Growth gate** — require at least N of {revenue growth, earnings growth, ROE}
+   to clear their thresholds, plus loose leverage/valuation guardrails.
+5. **Score** — weighted sum of z-scored growth + quality metrics.
+6. **Select** — top names by score under a per-sector diversification cap.
+
+All thresholds live in `ScreenConfig` (`screener/filters.py`) so they're auditable
 and tunable in one place — useful for the Assumptions Sheet.
 
-Tests
+## Tests
+
+```bash
 python -m pytest tests/ -q
-⚠️ Network note
-fundamentals.py and universe.py need outbound access to Yahoo Finance and
+```
+
+## ⚠️ Network note
+
+`fundamentals.py` and `universe.py` need outbound access to Yahoo Finance and
 nseindia.com. Some networks (incl. the remote sandbox this was built in) block
 those hosts at the egress proxy (HTTP 403). When that happens:
 
-the universe loader logs a warning and falls back to the curated seed list, and
-the fundamentals fetcher reports the tickers it couldn't fetch instead of crashing.
-To get live data, run on a machine with open egress to Yahoo Finance. To test
-the pipeline without any network, use --input with a fundamentals CSV. The
-sample_fundamentals_SYNTHETIC.csv file contains illustrative, hand-made numbers
-for plumbing tests only — not real market data; do not use it for the actual
+- the universe loader logs a warning and falls back to the curated seed list, and
+- the fundamentals fetcher reports the tickers it couldn't fetch instead of crashing.
+
+To get **live data**, run on a machine with open egress to Yahoo Finance. To test
+the pipeline without any network, use `--input` with a fundamentals CSV. The
+`sample_fundamentals_SYNTHETIC.csv` file contains **illustrative, hand-made numbers
+for plumbing tests only — not real market data**; do not use it for the actual
 submission.

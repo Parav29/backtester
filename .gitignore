@@ -8,3 +8,6 @@ venv/
 data/fundamentals_cache.csv
 data/b4_shortlist.csv
 data/b4_scored.csv
+
+# Generated backtester outputs
+data/singhania_backtest.xlsx
