@@ -1,0 +1,24 @@
+# Singhania portfolio holdings — copy to data/holdings.csv and fill in YOUR picks.
+# One row per holding, grouped by basket (B1-B4). Lines starting with # are ignored.
+#
+# Give the position value EITHER as `value_inr` directly, OR as quantity x price.
+# asset_class: equity_large | equity_midsmall | gsec | bond | gold | sgb | reit_invit | cash
+# return_override / vol_override: optional fractions (0.12 = 12%); blank = asset-class default.
+#
+# Targets are fixed by the competition (B1 20L@2028, B2 50L@2031, B3 1.5cr@2036, B4 2cr@2036)
+# and come from config.py — you only choose the instruments and amounts here.
+#
+basket,ticker,name,asset_class,quantity,price,value_inr,return_override,vol_override
+# --- B1 Liquidity (target Rs20L by 2028) ---
+B1,,Liquid fund,gsec,,,1200000,,
+B1,,364-day T-Bill,gsec,,,600000,,
+# --- B2 Property (target Rs50L by 2031) ---
+B2,,AAA corporate bonds,bond,,,3550000,,
+# --- B3 Vikram retirement (target Rs1.5cr by 2036) ---
+B3,,Long G-Sec 2036,gsec,,,2000000,,
+B3,,REIT/InvIT sleeve,reit_invit,,,2100000,,
+# --- B4 Aarya growth (target Rs2cr by 2036) — YOUR stock picks ---
+B4,HAL.NS,Hindustan Aeronautics,equity_large,300,4900,,,
+B4,BEL.NS,Bharat Electronics,equity_large,8000,320,,,
+B4,DIXON.NS,Dixon Technologies,equity_midsmall,100,15000,,,
+B4,SGBGOLD,Sovereign Gold Bond,sgb,,,500000,,
