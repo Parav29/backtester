@@ -10,22 +10,62 @@ Two tools for the Singhania Family Portfolio Management Competition:
 
 ## Backtester quick start
 
+You can drive the backtester three ways — it uses the first one available:
+
+1. **Your own holdings** (recommended): list the exact stocks/bonds + quantities.
+2. **Screener shortlist**: use the screener's picks for the equity sleeve.
+3. **Config defaults**: the hard-coded four-basket allocation.
+
 ```bash
-# Full run (B4 equity metrics need live yfinance for the picks)
+# 1. Backtest the EXACT instruments you chose (stocks, bonds, gold, REITs ...)
+cp data/holdings_template.csv data/holdings.csv   # then edit data/holdings.csv
+python -m backtester.run --holdings data/holdings.csv
+
+# 2. Use the screener shortlist for the equity metrics, config baskets otherwise
 python -m backtester.run --picks data/b4_shortlist.csv
 
-# Projection + Monte Carlo + tax only (no network)
+# 3. Projection + Monte Carlo + tax only (no network, no metrics)
 python -m backtester.run --no-metrics
 ```
 
 Outputs `data/singhania_backtest.xlsx` with sheets: Allocation, Projection,
 GoalReconciliation, B4Metrics, MonteCarlo, Assumptions.
 
+### Choosing your own stocks & quantities (`data/holdings.csv`)
+
+Copy `data/holdings_template.csv` to `data/holdings.csv` and fill in one row per
+holding, grouped by basket. Columns:
+
+| column | meaning |
+|---|---|
+| `basket` | `B1`–`B4` |
+| `ticker` | yfinance symbol for equities (e.g. `HAL.NS`); blank for bonds/cash |
+| `name` | free-text label |
+| `asset_class` | `equity_large` \| `equity_midsmall` \| `gsec` \| `bond` \| `gold` \| `sgb` \| `reit_invit` \| `cash` |
+| `quantity` + `price` | shares/units × price per unit … |
+| `value_inr` | … **or** the rupee value of the position directly |
+| `return_override` | optional annual return fraction (blank = asset-class default) |
+| `vol_override` | optional annual volatility fraction (blank = asset-class default) |
+
+From this the backtester computes each basket's **initial value** (sum of
+positions), **blended return** and **blended volatility** (value-weighted), then
+runs projection / Monte Carlo / tax on *your* mix. Targets, target years and the
+2029/2033 events stay fixed by the competition (in `config.py`).
+
+### Where are Sharpe / Treynor / Jensen's Alpha / Beta?
+
+Computed in `metrics.py` and printed as the **EQUITY METRICS** step of a run —
+but only when (a) you don't pass `--no-metrics`, (b) there are equity tickers
+(from `--holdings` or `--picks`), and (c) `yfinance` can fetch ~5y of monthly
+prices. They need live market data, so run on a machine with open egress to
+Yahoo Finance; in a blocked sandbox the step self-skips with a warning.
+
 ### Backtester layout
 
 ```
 backtester/
   config.py       # ALL assumptions: baskets, returns, events, tax, withdrawals
+  portfolio.py    # build baskets from YOUR holdings.csv (stocks/bonds + quantities)
   projection.py   # deterministic year-by-year projection to 2036 + goal recon
   metrics.py      # Beta / Sharpe / Treynor / Jensen's Alpha (market proxy ^NSEI)
   tax.py          # LTCG/STCG equity, slab debt tax, SGB exemption
@@ -34,10 +74,9 @@ backtester/
   run.py          # orchestrator / CLI
 ```
 
-`config.py` is the single source of truth — edit basket allocations, returns,
-the 2029/2033 events, and tax rates there; nothing downstream hard-codes them.
-To use your **own** final B4 picks, point `--picks` at a CSV with a `ticker`
-column (optional `weight` or `allocation_pct`; equal-weighted otherwise).
+`config.py` is the single source of truth for assumptions — edit returns, the
+2029/2033 events, targets and tax rates there. `data/holdings.csv` is the single
+source of truth for *what you actually hold*; nothing downstream hard-codes it.
 
 ---
 

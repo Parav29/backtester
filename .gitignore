@@ -11,3 +11,6 @@ data/b4_scored.csv
 
 # Generated backtester outputs
 data/singhania_backtest.xlsx
+
+# Your personal holdings (copy from data/holdings_template.csv); template stays tracked
+data/holdings.csv
