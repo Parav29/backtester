@@ -1,9 +1,45 @@
-# Singhania Portfolio — B4 Equity Screener
+# Singhania Portfolio — Screener + Backtester
 
-Stock screener for **B4 (Aarya's Growth Pool)** of the Singhania Family Portfolio
-Management Competition. It pulls fundamentals for the Nifty Total Market universe
-and filters/ranks candidates by **sector**, **market cap**, and **growth metrics**,
-producing a shortlist where each name carries the data points needed to justify it.
+Two tools for the Singhania Family Portfolio Management Competition:
+
+1. **`screener/`** — picks **B4 (Aarya's Growth Pool)** candidates from the Nifty
+   Total Market universe by sector, market cap, and growth metrics.
+2. **`backtester/`** — projects all four baskets (B1–B4) to 2036 with event-driven
+   rebalancing, computes the bonus risk metrics, applies tax, runs Monte Carlo,
+   and exports an Excel workbook for the judges.
+
+## Backtester quick start
+
+```bash
+# Full run (B4 equity metrics need live yfinance for the picks)
+python -m backtester.run --picks data/b4_shortlist.csv
+
+# Projection + Monte Carlo + tax only (no network)
+python -m backtester.run --no-metrics
+```
+
+Outputs `data/singhania_backtest.xlsx` with sheets: Allocation, Projection,
+GoalReconciliation, B4Metrics, MonteCarlo, Assumptions.
+
+### Backtester layout
+
+```
+backtester/
+  config.py       # ALL assumptions: baskets, returns, events, tax, withdrawals
+  projection.py   # deterministic year-by-year projection to 2036 + goal recon
+  metrics.py      # Beta / Sharpe / Treynor / Jensen's Alpha (market proxy ^NSEI)
+  tax.py          # LTCG/STCG equity, slab debt tax, SGB exemption
+  montecarlo.py   # N-path stochastic sim -> goal-achievement probability
+  excel_export.py # structured .xlsx workbook for judges
+  run.py          # orchestrator / CLI
+```
+
+`config.py` is the single source of truth — edit basket allocations, returns,
+the 2029/2033 events, and tax rates there; nothing downstream hard-codes them.
+To use your **own** final B4 picks, point `--picks` at a CSV with a `ticker`
+column (optional `weight` or `allocation_pct`; equal-weighted otherwise).
+
+---
 
 This is step 1 of the broader backtester (data pipeline → screen → metrics →
 projection → events → tax → Monte Carlo → Excel export).
