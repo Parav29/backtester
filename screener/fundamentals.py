@@ -98,6 +98,19 @@ def _normalise_de(de: float | None) -> float | None:
     return round(de / 100.0, 3)
 
 
+def _is_valid(val) -> bool:
+    """Return True if val is a non-null, non-NaN string value."""
+    if val is None:
+        return False
+    try:
+        import pandas as _pd
+        if _pd.isna(val):
+            return False
+    except (TypeError, ValueError):
+        pass
+    return bool(val)
+
+
 def fetch_one(ticker: str, seed_name: str | None = None,
               seed_sector: str | None = None, retries: int = 2) -> Fundamentals:
     """Fetch fundamentals for a single ticker. Raises ``DataUnavailable`` on failure."""
@@ -113,7 +126,7 @@ def fetch_one(ticker: str, seed_name: str | None = None,
             return Fundamentals(
                 ticker=ticker,
                 name=info.get("shortName") or info.get("longName") or seed_name,
-                thesis_sector=seed_sector or _SECTOR_MAP.get(ysector, ysector),
+                thesis_sector=seed_sector if _is_valid(seed_sector) else _SECTOR_MAP.get(ysector, ysector),
                 yahoo_sector=ysector,
                 price=info.get("currentPrice") or info.get("regularMarketPrice"),
                 market_cap_cr=_to_cr(info.get("marketCap")),
