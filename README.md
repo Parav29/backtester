@@ -1,163 +1,139 @@
-# Singhania Portfolio — Screener + Backtester
+# Singhania Portfolio Backtester
 
-Two tools for the Singhania Family Portfolio Management Competition:
+A backtester for the **PMC '26 Singhania Family Portfolio Management Competition**.
 
-1. **`screener/`** — picks **B4 (Aarya's Growth Pool)** candidates from the Nifty
-   Total Market universe by sector, market cap, and growth metrics.
-2. **`backtester/`** — projects all four baskets (B1–B4) to 2036 with event-driven
-   rebalancing, computes the bonus risk metrics, applies tax, runs Monte Carlo,
-   and exports an Excel workbook for the judges.
-
-## Backtester quick start
-
-You can drive the backtester three ways — it uses the first one available:
-
-1. **Your own holdings** (recommended): list the exact stocks/bonds + quantities.
-2. **Screener shortlist**: use the screener's picks for the equity sleeve.
-3. **Config defaults**: the hard-coded four-basket allocation.
-
-```bash
-# 1. Backtest the EXACT instruments you chose (stocks, bonds, gold, REITs ...)
-cp data/holdings_template.csv data/holdings.csv   # then edit data/holdings.csv
-python -m backtester.run --holdings data/holdings.csv
-
-# 2. Use the screener shortlist for the equity metrics, config baskets otherwise
-python -m backtester.run --picks data/b4_shortlist.csv
-
-# 3. Projection + Monte Carlo + tax only (no network, no metrics)
-python -m backtester.run --no-metrics
-```
-
-Outputs `data/singhania_backtest.xlsx` with sheets: Allocation, Projection,
-GoalReconciliation, B4Metrics, MonteCarlo, Assumptions.
-
-### Choosing your own stocks & quantities (`data/holdings.csv`)
-
-Copy `data/holdings_template.csv` to `data/holdings.csv` and fill in one row per
-holding, grouped by basket. Columns:
-
-| column | meaning |
-|---|---|
-| `basket` | `B1`–`B4` |
-| `ticker` | yfinance symbol for equities (e.g. `HAL.NS`); blank for bonds/cash |
-| `name` | free-text label |
-| `asset_class` | `equity_large` \| `equity_midsmall` \| `gsec` \| `bond` \| `gold` \| `sgb` \| `reit_invit` \| `cash` |
-| `quantity` + `price` | shares/units × price per unit … |
-| `value_inr` | … **or** the rupee value of the position directly |
-| `return_override` | optional annual return fraction (blank = asset-class default) |
-| `vol_override` | optional annual volatility fraction (blank = asset-class default) |
-
-From this the backtester computes each basket's **initial value** (sum of
-positions), **blended return** and **blended volatility** (value-weighted), then
-runs projection / Monte Carlo / tax on *your* mix. Targets, target years and the
-2029/2033 events stay fixed by the competition (in `config.py`).
-
-### Where are Sharpe / Treynor / Jensen's Alpha / Beta?
-
-Computed in `metrics.py` and printed as the **EQUITY METRICS** step of a run —
-but only when (a) you don't pass `--no-metrics`, (b) there are equity tickers
-(from `--holdings` or `--picks`), and (c) `yfinance` can fetch ~5y of monthly
-prices. They need live market data, so run on a machine with open egress to
-Yahoo Finance; in a blocked sandbox the step self-skips with a warning.
-
-### Backtester layout
-
-```
-backtester/
-  config.py       # ALL assumptions: baskets, returns, events, tax, withdrawals
-  portfolio.py    # build baskets from YOUR holdings.csv (stocks/bonds + quantities)
-  projection.py   # deterministic year-by-year projection to 2036 + goal recon
-  metrics.py      # Beta / Sharpe / Treynor / Jensen's Alpha (market proxy ^NSEI)
-  tax.py          # LTCG/STCG equity, slab debt tax, SGB exemption
-  montecarlo.py   # N-path stochastic sim -> goal-achievement probability
-  excel_export.py # structured .xlsx workbook for judges
-  run.py          # orchestrator / CLI
-```
-
-`config.py` is the single source of truth for assumptions — edit returns, the
-2029/2033 events, targets and tax rates there. `data/holdings.csv` is the single
-source of truth for *what you actually hold*; nothing downstream hard-codes it.
+It takes your chosen investments (stocks, bonds, gold, REITs), projects them over 10 years (2026–2036), handles the two competition events, computes taxes, runs 1,000 Monte Carlo simulations, and exports a ready-to-submit Excel workbook.
 
 ---
 
-This is step 1 of the broader backtester (data pipeline → screen → metrics →
-projection → events → tax → Monte Carlo → Excel export).
+## Quick Start (3 Steps)
 
-## Screener Layout
-
-```
-screener/
-  universe.py      # Nifty Total Market constituent list (NSE live, seed fallback)
-  fundamentals.py  # yfinance fetch -> normalised fundamentals (+ cache)
-  filters.py       # PURE functions: cap buckets, sector/cap/growth gates, scoring
-  screen.py        # CLI orchestrator -> ranked CSV + console summary
-data/
-  nifty_total_market_seed.csv        # curated thesis-sector seed (used if NSE blocked)
-  sample_fundamentals_SYNTHETIC.csv  # ILLUSTRATIVE data to demo the offline path
-tests/
-  test_filters.py  # unit tests for the screening logic (no network)
-```
-
-## Install
+### Step 1: Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+### Step 2: Add your holdings
 
-```bash
-# Live: fetch the official NSE list + fundamentals from Yahoo Finance, then screen
-python -m screener.screen
+Open `data/holdings.csv` and fill in your actual investments. Each row is one holding, tagged with the basket it belongs to (`B1`–`B4`).
 
-# Use the curated seed universe instead of fetching the NSE list
-python -m screener.screen --no-nse
-
-# Offline / reproducible: screen a CSV of already-fetched fundamentals
-python -m screener.screen --input data/fundamentals_cache.csv
-
-# Tune the shortlist
-python -m screener.screen --target-count 15 --max-per-sector 3
+```
+basket,ticker,name,asset_class,quantity,price,value_inr,return_override,vol_override
+B1,,Liquid fund,gsec,,,1200000,,
+B2,,AAA corporate bonds,bond,,,3550000,,
+B3,,Long G-Sec 2036,gsec,,,2000000,,
+B4,HAL.NS,Hindustan Aeronautics,equity_large,300,4900,,,
 ```
 
-Outputs: `data/b4_shortlist.csv` (ranked picks + justification metrics) and
-`data/b4_scored.csv` (every name that cleared the gates).
+**Column guide:**
 
-## How the screen works
+| Column | What to fill | Required? |
+|---|---|---|
+| `basket` | `B1`, `B2`, `B3`, or `B4` | Yes |
+| `ticker` | Yahoo Finance symbol (e.g. `HAL.NS`) — only for stocks | Only for stocks |
+| `name` | Any label you want | Optional |
+| `asset_class` | Type of investment (see below) | Yes |
+| `quantity` | Number of shares/units | Either qty+price… |
+| `price` | Price per share/unit in ₹ | …or value_inr |
+| `value_inr` | Total ₹ value of the position | Either this or qty+price |
+| `return_override` | Custom annual return (e.g. `0.12` = 12%) | Optional |
+| `vol_override` | Custom annual volatility | Optional |
 
-1. **Universe** — official Nifty Total Market list from NSE; falls back to a
-   curated seed of thesis-sector names when NSE is unreachable.
-2. **Sector gate** — keep only the six thesis sectors (Consumption, Financials,
-   Industrials, Defence, Digital, Healthcare). Yahoo GICS sectors are mapped to
-   these; the seed list tags Defence explicitly (Yahoo files it under Industrials).
-3. **Market-cap gate** — drop micro-caps below `min_market_cap_cr`; tag each name
-   large / mid / small by INR-crore cutoffs so the final mix spans `~11%` (large)
-   and `~13%` (mid/small) return buckets per the competition baseline.
-4. **Growth gate** — require at least N of {revenue growth, earnings growth, ROE}
-   to clear their thresholds, plus loose leverage/valuation guardrails.
-5. **Score** — weighted sum of z-scored growth + quality metrics.
-6. **Select** — top names by score under a per-sector diversification cap.
+**Allowed asset classes:** `equity_large`, `equity_midsmall`, `gsec`, `bond`, `gold`, `sgb`, `reit_invit`, `cash`
 
-All thresholds live in `ScreenConfig` (`screener/filters.py`) so they're auditable
-and tunable in one place — useful for the Assumptions Sheet.
+> **Tip:** For stocks, use `quantity × price`. For bonds/gold/REITs, just put the total ₹ amount in `value_inr`. Add as many rows as you want — there's no limit.
 
-## Tests
+### Step 3: Run the backtester
 
 ```bash
+python -m backtester.run --holdings data/holdings.csv
+```
+
+This will:
+1. Read your holdings and compute each basket's blended return
+2. Project all 4 baskets year-by-year to 2036
+3. Apply the 2029 RBI rate-cut and 2033 defence events
+4. Handle the ₹50L property withdrawal in 2031
+5. Calculate taxes (LTCG/STCG/debt)
+6. Run 1,000 Monte Carlo simulations
+7. Compute equity metrics (Beta, Sharpe, Treynor, Jensen's Alpha) for your stocks
+8. Generate `data/singhania_backtest.xlsx`
+
+---
+
+## Understanding the Output
+
+### Goal Reconciliation
+Shows whether each basket hits its competition target:
+
+| Basket | Goal | Target |
+|---|---|---|
+| B1 — Liquidity | ₹20L accessible by 2028 | Safety net |
+| B2 — Property | ₹50L withdrawn in 2031 | Property purchase |
+| B3 — Vikram | ₹1.5 Cr by 2036 | Retirement corpus |
+| B4 — Aarya | ₹2 Cr by 2036 | Growth pool |
+
+### Monte Carlo
+Shows the probability of meeting each goal across 1,000 random market scenarios. Higher % = more robust plan.
+
+### Equity Metrics (Bonus)
+Computed from 5 years of real Yahoo Finance price data for your stock holdings:
+- **Beta** = sensitivity to market (Nifty 50)
+- **Sharpe Ratio** = return per unit of risk
+- **Treynor Ratio** = return per unit of market risk
+- **Jensen's Alpha** = excess return over CAPM prediction
+
+### Excel Workbook
+`data/singhania_backtest.xlsx` contains 6 sheets: Allocation, Projection, GoalReconciliation, B4Metrics, MonteCarlo, Assumptions.
+
+---
+
+## Project Structure
+
+```
+backtester/
+  config.py        # ALL assumptions: returns, events, tax rates, targets
+  portfolio.py     # Reads holdings.csv → builds baskets
+  projection.py    # Year-by-year projection to 2036
+  metrics.py       # Beta / Sharpe / Treynor / Jensen's Alpha
+  tax.py           # LTCG / STCG / debt tax
+  montecarlo.py    # 1,000-path stochastic simulation
+  excel_export.py  # Generates the .xlsx workbook
+  run.py           # CLI orchestrator
+
+screener/          # (Optional) Stock screener for finding B4 equity picks
+
+data/
+  holdings_template.csv  # Template — copy to holdings.csv
+  holdings.csv           # YOUR investments (you edit this)
+  singhania_backtest.xlsx # Generated output
+```
+
+---
+
+## Customising the Model
+
+All competition assumptions live in `backtester/config.py`:
+- Basket targets and target years
+- Baseline return assumptions (Rf, Rm, large-cap, mid/small, G-Sec, etc.)
+- Event shocks (2029 rate cut, 2033 defence re-rating)
+- Tax rates
+- Withdrawal schedule
+
+Edit `config.py` if you want to change the event shocks or add new events. Edit `data/holdings.csv` to change what you're investing in.
+
+---
+
+## Other Commands
+
+```bash
+# Run without equity metrics (no internet needed)
+python -m backtester.run --holdings data/holdings.csv --no-metrics
+
+# Run with more Monte Carlo paths for smoother probabilities
+python -m backtester.run --holdings data/holdings.csv --sims 5000
+
+# Run unit tests
 python -m pytest tests/ -q
 ```
-
-## ⚠️ Network note
-
-`fundamentals.py` and `universe.py` need outbound access to Yahoo Finance and
-nseindia.com. Some networks (incl. the remote sandbox this was built in) block
-those hosts at the egress proxy (HTTP 403). When that happens:
-
-- the universe loader logs a warning and falls back to the curated seed list, and
-- the fundamentals fetcher reports the tickers it couldn't fetch instead of crashing.
-
-To get **live data**, run on a machine with open egress to Yahoo Finance. To test
-the pipeline without any network, use `--input` with a fundamentals CSV. The
-`sample_fundamentals_SYNTHETIC.csv` file contains **illustrative, hand-made numbers
-for plumbing tests only — not real market data**; do not use it for the actual
-submission.
